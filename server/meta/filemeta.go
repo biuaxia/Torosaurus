@@ -3,6 +3,7 @@ package meta
 import (
 	"sort"
 	"strings"
+	"zeroDemoProjectForUrl/Torosaurus/server/db"
 )
 
 // FileMeta 文件元信息结构
@@ -25,6 +26,16 @@ func init() {
 // UpdateFileMeta 新增/更新文件元信息
 func UpdateFileMeta(fm *FileMeta) {
 	fileMetas[strings.ToLower(fm.FileSha1)] = fm
+}
+
+// UpdateFileMetaDB 新增/更新文件元信息持久化到数据库，操作数据库成功返回true
+func UpdateFileMetaDB(fm *FileMeta) bool {
+	return db.OnFileUploadFinished(
+		fm.FileSha1,
+		fm.FileName,
+		fm.FileSize,
+		fm.Location,
+	)
 }
 
 // GetFileMeta 通过 fs(FileSha1) 获取文件元信息

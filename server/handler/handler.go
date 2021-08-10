@@ -72,9 +72,14 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		// Seek 移动到 0 的位置，类似于重置
 		newFile.Seek(0, 0)
 		fileMeta.FileSha1 = util.FileSha1(newFile)
-		meta.UpdateFileMeta(&fileMeta)
+		// meta.UpdateFileMeta(&fileMeta)
 
-		log.Printf("拷贝文件到本地目录 [%s] 完成，大小为 [%d]", newFile.Name(), fileMeta.FileSize)
+		os := meta.UpdateFileMetaDB(&fileMeta)
+
+		log.Printf("拷贝文件到本地目录 [%s] 完成，大小为 [%d]，更新到数据库 [%t]",
+			newFile.Name(),
+			fileMeta.FileSize,
+			os)
 		http.Redirect(w, r, "/file/upload/suc", http.StatusFound)
 	}
 }
