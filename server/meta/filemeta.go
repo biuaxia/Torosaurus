@@ -46,6 +46,21 @@ func GetFileMeta(fs string) *FileMeta {
 	return nil
 }
 
+// GetFileMeta 通过 fs(FileSha1) 从 DB 获取文件元信息
+func GetFileMetaDB(fs string) *FileMeta {
+	tf, err := db.OnGetFileMeta(fs)
+	if err != nil {
+		return nil
+	}
+
+	return &FileMeta{
+		FileSha1: tf.FileHash,
+		FileName: tf.FileName.String,
+		FileSize: tf.FileSize.Int64,
+		Location: tf.FileAddr.String,
+	}
+}
+
 // GetFileMeta 通过 fs(FileSha1) 获取文件元信息
 func GetAllFileMeta() []FileMeta {
 	result := make([]FileMeta, 0)
@@ -64,18 +79,40 @@ func GetAllFileMeta() []FileMeta {
 	return result
 }
 
+// GetFileMeta 通过 fs(FileSha1) 获取文件元信息
+func GetAllFileMetaDB() []FileMeta {
+	result := make([]FileMeta, 0)
+	tfs := db.OnGetAllFileMetas(99)
+
+	//按照排序后的key遍历map
+	for _, tf := range tfs {
+		fm := FileMeta{
+			FileSha1: tf.FileHash,
+			FileName: tf.FileName.String,
+			FileSize: tf.FileSize.Int64,
+			Location: tf.FileAddr.String,
+		}
+		result = append(result, fm)
+	}
+	return result
+}
+
 // GetLatestFileMetas 获取指定条数的最新文件列表
-func GetLatestFileMetas(count int) []FileMeta {
-	fmArray := make([]FileMeta, 0)
-	for _, v := range fileMetas {
-		fmArray = append(fmArray, *v)
+func GetLatestFileMetas(count int64) []FileMeta {
+	result := make([]FileMeta, 0)
+	tfs := db.OnGetAllFileMetas(count)
+	//按照排序后的key遍历map
+	for _, tf := range tfs {
+		fm := FileMeta{
+			FileSha1: tf.FileHash,
+			FileName: tf.FileName.String,
+			FileSize: tf.FileSize.Int64,
+			Location: tf.FileAddr.String,
+		}
+		result = append(result, fm)
 	}
-	sort.Sort(ByUploadTime(fmArray))
-	// 对数据进行处理，如果想要获取的条数count大于数组长度则以数据长度为准
-	if len(fmArray) < count {
-		count = len(fmArray)
-	}
-	return fmArray[:count]
+
+	return result
 }
 
 // RemoveFileMeta 从Map中移除指定key的元素

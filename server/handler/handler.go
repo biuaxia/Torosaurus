@@ -73,7 +73,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		newFile.Seek(0, 0)
 		fileMeta.FileSha1 = util.FileSha1(newFile)
 		// meta.UpdateFileMeta(&fileMeta)
-
 		os := meta.UpdateFileMetaDB(&fileMeta)
 
 		log.Printf("拷贝文件到本地目录 [%s] 完成，大小为 [%d]，更新到数据库 [%t]",
@@ -90,9 +89,9 @@ func UploadSucHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "success")
 }
 
-// UploadSucHandler 上传成功的提示信息回写
+// GetAllFileMetaHandler 获取所有文件元信息
 func GetAllFileMetaHandler(w http.ResponseWriter, r *http.Request) {
-	result := meta.GetAllFileMeta()
+	result := meta.GetAllFileMetaDB()
 	bytes, err := json.Marshal(result)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -114,7 +113,7 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filehash := r.Form.Get("filehash")
-	fm := meta.GetFileMeta(filehash)
+	fm := meta.GetFileMetaDB(filehash)
 	if fm == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internel server error -> file not exist")
@@ -154,7 +153,7 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmArray := meta.GetLatestFileMetas(limitCount)
+	fmArray := meta.GetLatestFileMetas(int64(limitCount))
 	bytes, err := json.Marshal(fmArray)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -182,7 +181,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fm := meta.GetFileMeta(filehash)
+	fm := meta.GetFileMetaDB(filehash)
 	if fm == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internel server error -> file not exist")
@@ -237,7 +236,7 @@ func UpdateFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fm := meta.GetFileMeta(filehash)
+	fm := meta.GetFileMetaDB(filehash)
 	if fm == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internel server error -> file not exist")
@@ -250,11 +249,13 @@ func UpdateFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	filesuffix := path.Ext(fm.FileName)
 
 	fm.FileName = filename + filesuffix
-	meta.UpdateFileMeta(fm)
+	b := meta.UpdateFileMetaDB(fm)
 
-	log.Printf("更新文件名称完成；原名称 [%s]，新名称 [%s]",
-		oldFileName,
-		fm.FileName)
+	if b {
+		log.Printf("更新文件名称完成；原名称 [%s]，新名称 [%s]",
+			oldFileName,
+			fm.FileName)
+	}
 
 	bytes, err := json.Marshal(fm)
 	if err != nil {
@@ -285,7 +286,7 @@ func FileDelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fm := meta.GetFileMeta(filehash)
+	fm := meta.GetFileMetaDB(filehash)
 	if fm == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, "internel server error -> file not exist")
