@@ -21,7 +21,7 @@ import (
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		// 返回上传页面
-		bytes, err := ioutil.ReadFile("./static/view/index.html")
+		bytes, err := ioutil.ReadFile("./static/view/fileupload.html")
 		if err != nil {
 			// 出错就展示错误语句给前端
 			w.WriteHeader(http.StatusInternalServerError)

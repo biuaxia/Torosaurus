@@ -8,6 +8,7 @@ import (
 
 func main() {
 	// 设置路由规则
+	// file 文件上传
 	http.HandleFunc("/file/upload", handler.UploadHandler)
 	http.HandleFunc("/file/upload/suc", handler.UploadSucHandler)
 	http.HandleFunc("/file/meta", handler.GetFileMetaHandler)
@@ -16,6 +17,10 @@ func main() {
 	http.HandleFunc("/file/download", handler.DownloadHandler)
 	http.HandleFunc("/file/update", handler.UpdateFileMetaHandler)
 	http.HandleFunc("/file/delete", handler.FileDelHandler)
+	// user 用户
+	http.HandleFunc("/user/signup", handler.SignupHandler)
+	http.HandleFunc("/user/signin", handler.SignInHandler)
+
 	// 开启监听
 	err := http.ListenAndServe(":8081", nil)
 	if err != nil {
