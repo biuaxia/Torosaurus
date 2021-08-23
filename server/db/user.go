@@ -7,8 +7,14 @@ import (
 )
 
 // UserSignUp 用户注册，成功返回 true
-func UserSignUp(username string, password string) bool {
-	sqlTemp := "INSERT IGNORE INTO `tbl_user` (`user_name`, `user_pwd`) VALUES (?, ?)"
+func UserSignUp(username string, phone string, password string) bool {
+	u, _ := GetUserInfo(username)
+	if u.Username == username {
+		log.Println("User exist, don't insert")
+		return false
+	}
+
+	sqlTemp := "INSERT INTO `tbl_user` (`user_name`, `phone`, `user_pwd`) VALUES (?, ?, ?)"
 	stmt, err := mysql.DBConn().Prepare(sqlTemp)
 	if err != nil {
 		log.Printf("Failed to prepare statement, err: %s\n", err.Error())
@@ -16,20 +22,22 @@ func UserSignUp(username string, password string) bool {
 	}
 	defer stmt.Close()
 
-	ret, err := stmt.Exec(username, password)
+	ret, err := stmt.Exec(username, phone, password)
 	if err != nil {
-		log.Printf("Failed to exec sql, err: %s\n", err.Error())
+		log.Printf("UserSignUp -> Failed to exec sql, err: %s\n", err.Error())
 		return false
 	}
 
 	rf, err := ret.RowsAffected()
 	if err != nil {
-		log.Printf("Failed to exec sql, err: %s\n", err.Error())
+		log.Printf("Failed to check RowsAffected sql, err: %s\n", err.Error())
 		return false
 	}
 	if rf <= 0 {
 		log.Printf("sql exec success, but affect row is zero.")
+		return false
 	}
+	log.Printf("user signup sql exec success")
 	return true
 }
 
@@ -68,17 +76,46 @@ func UpdateToken(username string, token string) bool {
 
 	ret, err := stmt.Exec(username, token)
 	if err != nil {
-		log.Printf("Failed to exec sql, err: %s\n", err.Error())
+		log.Printf("UpdateToken -> Failed to exec sql, err: %s\n", err.Error())
 		return false
 	}
 
 	rf, err := ret.RowsAffected()
 	if err != nil {
-		log.Printf("Failed to exec sql, err: %s\n", err.Error())
+		log.Printf("Failed to check RowsAffected sql, err: %s\n", err.Error())
 		return false
 	}
 	if rf <= 0 {
 		log.Printf("sql exec success, but affect row is zero.")
 	}
 	return true
+}
+
+type User struct {
+	Username     string
+	Email        string
+	Phone        string
+	SignupAt     string
+	LastActiveAt string
+	Status       int
+}
+
+// GetUserInfo 获取用户信息
+func GetUserInfo(username string) (User, error) {
+	user := User{}
+
+	sqlTemp := "SELECT `user_name`, `signup_at` FROM `tbl_user` WHERE `user_name` = ? limit 1"
+	stmt, err := mysql.DBConn().Prepare(sqlTemp)
+	if err != nil {
+		log.Printf("Failed to prepare statement, err: %s\n", err.Error())
+		return user, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(username).Scan(&user.Username, &user.SignupAt)
+	if err != nil {
+		log.Printf("Warning -> exec query, err: %s\n", err.Error())
+		return user, err
+	}
+	return user, nil
 }

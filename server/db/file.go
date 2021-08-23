@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"zeroDemoProjectForUrl/Torosaurus/server/db/mysql"
+	"zeroDemoProjectForUrl/Torosaurus/server/util"
 )
 
 // OnFileUploadFinished 文件上传完成时的数据库操作
@@ -28,13 +29,13 @@ func OnFileUploadFinished(
 
 		ret, err := stmt.Exec(filehash, filename, filesize, fileaddr)
 		if err != nil {
-			log.Printf("Failed to exec sql, err: %s\n", err.Error())
+			log.Printf("OnFileUploadFinished | 1 -> Failed to exec sql, err: %s\n", err.Error())
 			return false
 		}
 
 		rf, err := ret.RowsAffected()
 		if err != nil {
-			log.Printf("Failed to exec sql, err: %s\n", err.Error())
+			log.Printf("Failed to check RowsAffected sql, err: %s\n", err.Error())
 			return false
 		}
 		if rf <= 0 {
@@ -58,13 +59,13 @@ func OnFileUploadFinished(
 
 	ret, err := stmt.Exec(filename, filehash)
 	if err != nil {
-		log.Printf("Failed to exec sql, err: %s\n", err.Error())
+		log.Printf("OnFileUploadFinished | 2 -> Failed to exec sql, err: %s\n", err.Error())
 		return false
 	}
 
 	rf, err := ret.RowsAffected()
 	if err != nil {
-		log.Printf("Failed to exec sql, err: %s\n", err.Error())
+		log.Printf("Failed to check RowsAffected sql, err: %s\n", err.Error())
 		return false
 	}
 	if rf <= 0 {
@@ -74,7 +75,7 @@ func OnFileUploadFinished(
 }
 
 type TableFile struct {
-	FileHash string
+	FileSha1 string
 	FileName sql.NullString
 	FileSize sql.NullInt64
 	FileAddr sql.NullString
@@ -98,13 +99,74 @@ func OnGetFileMeta(filehash string) (*TableFile, error) {
 
 	err = stmt.QueryRow(filehash).
 		// 扫描到对象字段（与SQL语句一致），指针传递，外部就可以直接使用 tf 对象了
-		Scan(&tf.FileHash, &tf.FileName, &tf.FileSize, &tf.FileAddr)
+		Scan(&tf.FileSha1, &tf.FileName, &tf.FileSize, &tf.FileAddr)
 	if err != nil {
 		log.Printf("Failed to queryRow, err: %s\n", err.Error())
 		return nil, err
 	}
 
 	return &tf, nil
+}
+
+func OnGetAllFileMetasByUsername(limit int64, username string) []TableFile {
+	db := mysql.DBConn()
+
+	var rs *sql.Rows
+
+	if util.IsBlank(username) {
+		sqlTemp := "SELECT `file_sha1`, `file_name`, `file_size`, `file_addr`" +
+			" FROM `tbl_file` where status = 1 order by `create_at` limit ? "
+		stmt, err := db.Prepare(sqlTemp)
+		if err != nil {
+			log.Printf("Failed to prepare statement, err: %s\n", err.Error())
+			return nil
+		}
+		defer stmt.Close()
+
+		if limit == 0 {
+			limit = 5
+		}
+
+		rs, err := stmt.Query(limit)
+		if nil != err {
+			log.Printf("Failed to queryRow, err: %s\n", err.Error())
+			return nil
+		}
+		defer rs.Close()
+	} else {
+		sqlTemp := "SELECT `file_sha1`, `file_name`, `file_size`, `file_addr`" +
+			" FROM `tbl_file` where status = 1 order by `create_at` limit ? "
+		stmt, err := db.Prepare(sqlTemp)
+		if err != nil {
+			log.Printf("Failed to prepare statement, err: %s\n", err.Error())
+			return nil
+		}
+		defer stmt.Close()
+
+		if limit == 0 {
+			limit = 5
+		}
+
+		rs, err := stmt.Query(limit)
+		if nil != err {
+			log.Printf("Failed to queryRow, err: %s\n", err.Error())
+			return nil
+		}
+		defer rs.Close()
+	}
+
+	var tfs []TableFile
+
+	for rs.Next() {
+		var tf TableFile
+		err := rs.Scan(&tf.FileSha1, &tf.FileName, &tf.FileSize, &tf.FileAddr)
+		if err != nil {
+			log.Printf("Failed to queryRow, err: %s\n", err.Error())
+			return nil
+		}
+		tfs = append(tfs, tf)
+	}
+	return tfs
 }
 
 // OnGetAllFileMetas 获取所有文件元信息，支持分页，默认按照上传时间排序
@@ -135,7 +197,7 @@ func OnGetAllFileMetas(limit int64) []TableFile {
 
 	for rs.Next() {
 		var tf TableFile
-		err := rs.Scan(&tf.FileHash, &tf.FileName, &tf.FileSize, &tf.FileAddr)
+		err := rs.Scan(&tf.FileSha1, &tf.FileName, &tf.FileSize, &tf.FileAddr)
 		if err != nil {
 			log.Printf("Failed to queryRow, err: %s\n", err.Error())
 			return nil

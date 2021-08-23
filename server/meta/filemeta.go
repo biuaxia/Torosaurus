@@ -8,13 +8,13 @@ import (
 
 // FileMeta 文件元信息结构
 type FileMeta struct {
-	FileSha1 string `json:"fileSha1,omitempty"`
-	FileName string `json:"fileName,omitempty"`
-	FileSize int64  `json:"fileSize,omitempty"`
+	FileSha1 string
+	FileName string
+	FileSize int64
 	// Location 本地路径
-	Location string `json:"fileLocation,omitempty"`
+	Location string
 	// UploadAt 文件上传时间戳
-	UploadAt string `json:"fileUploadTime,omitempty"`
+	UploadAt string
 }
 
 var fileMetas map[string]*FileMeta
@@ -54,7 +54,7 @@ func GetFileMetaDB(fs string) *FileMeta {
 	}
 
 	return &FileMeta{
-		FileSha1: tf.FileHash,
+		FileSha1: tf.FileSha1,
 		FileName: tf.FileName.String,
 		FileSize: tf.FileSize.Int64,
 		Location: tf.FileAddr.String,
@@ -87,7 +87,7 @@ func GetAllFileMetaDB() []FileMeta {
 	//按照排序后的key遍历map
 	for _, tf := range tfs {
 		fm := FileMeta{
-			FileSha1: tf.FileHash,
+			FileSha1: tf.FileSha1,
 			FileName: tf.FileName.String,
 			FileSize: tf.FileSize.Int64,
 			Location: tf.FileAddr.String,
@@ -104,7 +104,7 @@ func GetLatestFileMetas(count int64) []FileMeta {
 	//按照排序后的key遍历map
 	for _, tf := range tfs {
 		fm := FileMeta{
-			FileSha1: tf.FileHash,
+			FileSha1: tf.FileSha1,
 			FileName: tf.FileName.String,
 			FileSize: tf.FileSize.Int64,
 			Location: tf.FileAddr.String,

@@ -75,13 +75,13 @@ func IsBlank(s string) bool {
 	if s == "" || length == 0 {
 		return true
 	}
-	return true
+	return false
 }
 
 // IsAllBlank 所有字符串是否为空, 有一个为空返回true, 全部不为空返回false
 func IsAllBlank(ss ...string) bool {
 	for _, v := range ss {
-		if !IsBlank(v) {
+		if IsBlank(v) {
 			return true
 		}
 	}

@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"zeroDemoProjectForUrl/Torosaurus/server/db"
 	"zeroDemoProjectForUrl/Torosaurus/server/meta"
 	"zeroDemoProjectForUrl/Torosaurus/server/util"
 )
@@ -33,7 +34,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, string(bytes))
 	} else if r.Method == "POST" {
 		// 接收文件流及存储到本地目录
-		file, head, err := r.FormFile("smfile")
+		file, head, err := r.FormFile("file")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w,
@@ -73,13 +74,37 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		newFile.Seek(0, 0)
 		fileMeta.FileSha1 = util.FileSha1(newFile)
 		// meta.UpdateFileMeta(&fileMeta)
-		os := meta.UpdateFileMetaDB(&fileMeta)
+		ofuf := meta.UpdateFileMetaDB(&fileMeta)
 
-		log.Printf("拷贝文件到本地目录 [%s] 完成，大小为 [%d]，更新到数据库 [%t]",
+		err = r.ParseForm()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			io.WriteString(w,
+				fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+			return
+		}
+
+		username := r.Form.Get("username")
+		if util.IsAllBlank(username) {
+			w.WriteHeader(http.StatusInternalServerError)
+			io.WriteString(w, "internel server error -> username is not empty")
+			return
+		}
+
+		oufuf := db.OnUserFileUploadFinished(username, fileMeta.FileSha1, fileMeta.FileName, fileMeta.FileSize)
+
+		log.Printf("拷贝文件到本地目录 [%s] 完成，大小为 [%d]，更新文件数据库 [%t]，更新文件关联数据库 [%t]",
 			newFile.Name(),
 			fileMeta.FileSize,
-			os)
-		http.Redirect(w, r, "/file/upload/suc", http.StatusFound)
+			ofuf,
+			oufuf)
+		if !ofuf || !oufuf {
+			w.WriteHeader(http.StatusInternalServerError)
+			io.WriteString(w, "internel server error -> 处理文件出错")
+			return
+		}
+		w.Header().Add("Content-Type", "application/json;charset=utf-8")
+		w.Write(util.GenSimpleRespStream(0, "OK"))
 	}
 }
 
@@ -153,14 +178,31 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmArray := meta.GetLatestFileMetas(int64(limitCount))
-	bytes, err := json.Marshal(fmArray)
+	username := r.Form.Get("username")
+	if util.IsBlank(username) {
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internel server error -> username is not empty")
+		return
+	}
+
+	ufs, err := db.QueryUserFileMetas(username, limitCount)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w,
+			fmt.Sprintf("internel server error -> query userfiles failed: %s", err.Error()))
+		return
+	}
+
+	// fmArray := meta.GetLatestFileMetas(int64(limitCount))
+	bytes, err := json.Marshal(ufs)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
 			fmt.Sprintf("internel server error -> marshal json: %s", err.Error()))
 		return
 	}
+
+	w.Header().Add("Content-Type", "application/json;charset=utf-8")
 	w.Write(bytes)
 }
 
@@ -310,4 +352,61 @@ func FileDelHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	io.WriteString(w, "success")
+}
+
+func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w,
+			fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+		return
+	}
+
+	username := r.Form.Get("username")
+	filehash := r.Form.Get("filehash")
+	filename := r.Form.Get("filename")
+	filesize := r.Form.Get("filesize")
+	if util.IsAllBlank(username, filehash, filename, filesize) {
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, "internel server error -> username, filehash, filename, filesize is not empty")
+		return
+	}
+
+	fm := meta.GetFileMetaDB(filehash)
+	if fm == nil {
+		resp := util.RespMsg{
+			Code: -1,
+			Msg:  "秒传失败，请访问普通上传接口",
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(resp.JSONBytes())
+		return
+	}
+	fz, err := strconv.Atoi(filesize)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w,
+			fmt.Sprintf("internel server error -> filesize convert to int type failed: %s", err.Error()))
+		return
+	}
+
+	ret := db.OnUserFileUploadFinished(username, filehash, filename, int64(fz))
+	var resp util.RespMsg
+	if !ret {
+		resp = util.RespMsg{
+			Code: -2,
+			Msg:  "秒传失败，请稍后重试",
+		}
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		resp = util.RespMsg{
+			Code: 0,
+			Msg:  "秒传成功",
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+	w.Write(resp.JSONBytes())
+	return
+
 }
