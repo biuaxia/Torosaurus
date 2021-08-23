@@ -16,3 +16,4 @@
 
 .idea
 /tmp/*
+go.sum
