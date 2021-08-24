@@ -23,7 +23,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		// 	// 出错就展示错误语句给前端
 		// 	w.WriteHeader(http.StatusInternalServerError)
 		// 	io.WriteString(w,
-		// 		fmt.Sprintf("internel server error: %s", err.Error()))
+		// 		fmt.Sprintf("internal server error: %s", err.Error()))
 		// 	return
 		// }
 		// // 正常情况返回 html 页面
@@ -36,7 +36,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w,
-				fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+				fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 			return
 		}
 
@@ -45,7 +45,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		phone := r.Form.Get("phone")
 		if util.IsAllBlank(username, password, phone) {
 			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, "internel server error -> username, password, phone is not empty")
+			io.WriteString(w, "internal server error -> username, password, phone is not empty")
 			return
 		}
 
@@ -58,7 +58,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		suc := db.UserSignUp(username, phone, enc_password)
 		if !suc {
 			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, "internel server error -> user signup failed")
+			io.WriteString(w, "internal server error -> user signup failed")
 			return
 		}
 		w.Header().Add("Content-Type", "application/json;charset=utf-8")
@@ -77,7 +77,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w,
-				fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+				fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 			return
 		}
 
@@ -85,7 +85,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		password := r.Form.Get("password")
 		if util.IsAllBlank(username, password) {
 			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, "internel server error -> username or password is not empty")
+			io.WriteString(w, "internal server error -> username or password is not empty")
 			return
 		}
 
@@ -98,7 +98,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		pwdCheckRs := db.UserSignIn(username, enc_password)
 		if !pwdCheckRs {
 			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, "internel server error -> username not exist or password not match")
+			io.WriteString(w, "internal server error -> username not exist or password not match")
 			return
 		}
 
@@ -106,7 +106,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		upRes := db.UpdateToken(username, token)
 		if !upRes {
 			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, "internel server error -> update token failed")
+			io.WriteString(w, "internal server error -> update token failed")
 			return
 		}
 
@@ -144,21 +144,21 @@ func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+			fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 		return
 	}
 
 	username := r.Form.Get("username")
 	if util.IsAllBlank(username) {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> username is not empty")
+		io.WriteString(w, "internal server error -> username is not empty")
 		return
 	}
 
 	user, err := db.GetUserInfo(username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> by username not get exist userinfo")
+		io.WriteString(w, "internal server error -> by username not get exist userinfo")
 		return
 	}
 

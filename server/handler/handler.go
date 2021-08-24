@@ -27,7 +27,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			// 出错就展示错误语句给前端
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w,
-				fmt.Sprintf("internel server error: %s", err.Error()))
+				fmt.Sprintf("internal server error: %s", err.Error()))
 			return
 		}
 		// 正常情况返回 html 页面
@@ -38,7 +38,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w,
-				fmt.Sprintf("internel server error -> get upload file data: %s", err.Error()))
+				fmt.Sprintf("internal server error -> get upload file data: %s", err.Error()))
 			return
 		}
 		defer file.Close()
@@ -56,7 +56,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w,
-				fmt.Sprintf("internel server error -> upload file to server local: %s", err.Error()))
+				fmt.Sprintf("internal server error -> upload file to server local: %s", err.Error()))
 			return
 		}
 		defer newFile.Close()
@@ -66,7 +66,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w,
-				fmt.Sprintf("internel server error -> copy file to server local: %s", err.Error()))
+				fmt.Sprintf("internal server error -> copy file to server local: %s", err.Error()))
 			return
 		}
 
@@ -80,14 +80,14 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w,
-				fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+				fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 			return
 		}
 
 		username := r.Form.Get("username")
 		if util.IsAllBlank(username) {
 			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, "internel server error -> username is not empty")
+			io.WriteString(w, "internal server error -> username is not empty")
 			return
 		}
 
@@ -100,7 +100,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			oufuf)
 		if !ofuf || !oufuf {
 			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, "internel server error -> 处理文件出错")
+			io.WriteString(w, "internal server error -> 处理文件出错")
 			return
 		}
 		w.Header().Add("Content-Type", "application/json;charset=utf-8")
@@ -121,7 +121,7 @@ func GetAllFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> marshal json: %s", err.Error()))
+			fmt.Sprintf("internal server error -> marshal json: %s", err.Error()))
 		return
 	}
 	w.Write(bytes)
@@ -133,7 +133,7 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+			fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 		return
 	}
 
@@ -141,7 +141,7 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	fm := meta.GetFileMetaDB(filehash)
 	if fm == nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> file not exist")
+		io.WriteString(w, "internal server error -> file not exist")
 		return
 	}
 
@@ -149,7 +149,7 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> marshal json: %s", err.Error()))
+			fmt.Sprintf("internal server error -> marshal json: %s", err.Error()))
 		return
 	}
 	w.Write(bytes)
@@ -161,7 +161,7 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+			fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 		return
 	}
 
@@ -174,14 +174,14 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> limit Form: %s", err.Error()))
+			fmt.Sprintf("internal server error -> limit Form: %s", err.Error()))
 		return
 	}
 
 	username := r.Form.Get("username")
 	if util.IsBlank(username) {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> username is not empty")
+		io.WriteString(w, "internal server error -> username is not empty")
 		return
 	}
 
@@ -189,7 +189,7 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> query userfiles failed: %s", err.Error()))
+			fmt.Sprintf("internal server error -> query userfiles failed: %s", err.Error()))
 		return
 	}
 
@@ -198,7 +198,7 @@ func FileQueryHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> marshal json: %s", err.Error()))
+			fmt.Sprintf("internal server error -> marshal json: %s", err.Error()))
 		return
 	}
 
@@ -212,21 +212,21 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+			fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 		return
 	}
 
 	filehash := r.Form.Get("filehash")
 	if len(filehash) == 0 {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> filehash isEmpty")
+		io.WriteString(w, "internal server error -> filehash isEmpty")
 		return
 	}
 
 	fm := meta.GetFileMetaDB(filehash)
 	if fm == nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> file not exist")
+		io.WriteString(w, "internal server error -> file not exist")
 		return
 	}
 
@@ -234,7 +234,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> load file to memory: %s", err.Error()))
+			fmt.Sprintf("internal server error -> load file to memory: %s", err.Error()))
 		return
 	}
 	defer f.Close()
@@ -243,7 +243,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> io readall: %s", err.Error()))
+			fmt.Sprintf("internal server error -> io readall: %s", err.Error()))
 		return
 	}
 
@@ -260,28 +260,28 @@ func UpdateFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+			fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 		return
 	}
 
 	filehash := r.Form.Get("filehash")
 	if len(filehash) == 0 {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> filehash isEmpty")
+		io.WriteString(w, "internal server error -> filehash isEmpty")
 		return
 	}
 
 	filename := strings.TrimSpace(r.Form.Get("filename"))
 	if len(filename) == 0 {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> filename isEmpty")
+		io.WriteString(w, "internal server error -> filename isEmpty")
 		return
 	}
 
 	fm := meta.GetFileMetaDB(filehash)
 	if fm == nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> file not exist")
+		io.WriteString(w, "internal server error -> file not exist")
 		return
 	}
 
@@ -303,7 +303,7 @@ func UpdateFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> marshal json: %s", err.Error()))
+			fmt.Sprintf("internal server error -> marshal json: %s", err.Error()))
 		return
 	}
 
@@ -317,21 +317,21 @@ func FileDelHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+			fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 		return
 	}
 
 	filehash := r.Form.Get("filehash")
 	if len(filehash) == 0 {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> filehash isEmpty")
+		io.WriteString(w, "internal server error -> filehash isEmpty")
 		return
 	}
 
 	fm := meta.GetFileMetaDB(filehash)
 	if fm == nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> file not exist")
+		io.WriteString(w, "internal server error -> file not exist")
 		return
 	}
 
@@ -339,14 +339,14 @@ func FileDelHandler(w http.ResponseWriter, r *http.Request) {
 	ok := meta.RemoveFileMeta(filehash)
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> remove file failed")
+		io.WriteString(w, "internal server error -> remove file failed")
 		return
 	}
 	// 移除物理存储
 	err = os.Remove(fm.Location)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> os remove file failed")
+		io.WriteString(w, "internal server error -> os remove file failed")
 		return
 	}
 
@@ -359,7 +359,7 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+			fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 		return
 	}
 
@@ -369,7 +369,7 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
 	filesize := r.Form.Get("filesize")
 	if util.IsAllBlank(username, filehash, filename, filesize) {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, "internel server error -> username, filehash, filename, filesize is not empty")
+		io.WriteString(w, "internal server error -> username, filehash, filename, filesize is not empty")
 		return
 	}
 
@@ -387,7 +387,7 @@ func TryFastUploadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w,
-			fmt.Sprintf("internel server error -> filesize convert to int type failed: %s", err.Error()))
+			fmt.Sprintf("internal server error -> filesize convert to int type failed: %s", err.Error()))
 		return
 	}
 

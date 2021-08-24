@@ -20,13 +20,19 @@ func main() {
 	http.HandleFunc("/file/update", handler.HttpInterceptor(handler.UpdateFileMetaHandler))
 	http.HandleFunc("/file/delete", handler.HttpInterceptor(handler.FileDelHandler))
 	http.HandleFunc("/file/fastupload", handler.HttpInterceptor(handler.TryFastUploadHandler))
+
+	// 分块上传接口
+	http.HandleFunc("/file/mpupload/init", handler.HttpInterceptor(handler.InitialMultipartUploadHandler))
+	http.HandleFunc("/file/mpupload/uppart", handler.HttpInterceptor(handler.UplaodPartHandler))
+	http.HandleFunc("/file/mpupload/complete", handler.HttpInterceptor(handler.CompleteUploadHandler))
+
 	// user 用户
 	http.HandleFunc("/user/signup", handler.SignupHandler)
 	http.HandleFunc("/user/signin", handler.SignInHandler)
 	http.HandleFunc("/user/info", handler.HttpInterceptor(handler.UserInfoHandler))
 
 	// 开启监听
-	err := http.ListenAndServe(":8081", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatalf("failed to start server, err: %s", err.Error())
 	}

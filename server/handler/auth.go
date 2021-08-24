@@ -17,7 +17,7 @@ func HttpInterceptor(hf http.HandlerFunc) http.HandlerFunc {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				io.WriteString(w,
-					fmt.Sprintf("internel server error -> parse Form: %s", err.Error()))
+					fmt.Sprintf("internal server error -> parse Form: %s", err.Error()))
 				return
 			}
 
@@ -25,7 +25,7 @@ func HttpInterceptor(hf http.HandlerFunc) http.HandlerFunc {
 			token := r.Form.Get("token")
 			if util.IsAllBlank(username, token) {
 				w.WriteHeader(http.StatusInternalServerError)
-				io.WriteString(w, "internel server error -> username or token is not empty")
+				io.WriteString(w, "internal server error -> username or token is not empty")
 				return
 			}
 

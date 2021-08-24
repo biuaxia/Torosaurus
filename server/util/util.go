@@ -4,10 +4,13 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type Sha1Stream struct {
@@ -86,4 +89,15 @@ func IsAllBlank(ss ...string) bool {
 		}
 	}
 	return false
+}
+
+func RemovePathByShell(destPath string) bool {
+	// cmdStr := strings.Replace(FileChunksDelCMD, "$1", destPath, 1)
+	cmdStr := strings.Replace("FileChunksDelCMD", "$1", destPath, 1)
+	delCmd := exec.Command("bash", "-c", cmdStr)
+	if _, err := delCmd.Output(); err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return true
 }
